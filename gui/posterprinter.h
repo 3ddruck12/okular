@@ -7,7 +7,6 @@
 #define POSTERPRINTER_H
 
 #include <QObject>
-#include <QPrinter>
 #include <QString>
 
 namespace Okular {
