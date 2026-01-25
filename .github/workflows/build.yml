@@ -9,13 +9,20 @@ jobs:
     name: Build Linux (Binaries + .deb)
     runs-on: ubuntu-latest
     container:
-      image: kdeorg/ci-build
+      image: ubuntu:rolling
       options: --user root
     steps:
-    - name: Install Git & Basic Tools
+    - name: Prepare Container & Dependencies
       run: |
+        # Enable source repositories
+        sed -i 's/^Types: deb$/Types: deb deb-src/' /etc/apt/sources.list.d/ubuntu.sources || sed -i 's/^#\s*deb-src/deb-src/' /etc/apt/sources.list
+        
         apt-get update
-        apt-get install -y git tar
+        apt-get install -y git tar build-essential cmake extra-cmake-modules
+        
+        # Install build dependencies for Okular (pulls in KF6/Qt6)
+        export DEBIAN_FRONTEND=noninteractive
+        apt-get build-dep -y okular
     - uses: actions/checkout@v4
     - name: Create Source Tarball
       run: |
@@ -26,18 +33,6 @@ jobs:
       with:
         name: okular-source
         path: okular-source.tar.gz
-    
-    - name: Install Build Dependencies
-      run: |
-        apt-get install -y build-essential cmake extra-cmake-modules \
-          qt6-base-dev qt6-svg-dev qt6-declarative-dev qt6-tools-dev qt6-5compat-dev qt6-speech-dev \
-          libkf6archive-dev libkf6bookmarks-dev libkf6completion-dev libkf6config-dev libkf6configwidgets-dev \
-          libkf6coreaddons-dev libkf6i18n-dev libkf6kio-dev libkf6parts-dev libkf6windowsystem-dev libkf6xmlgui-dev \
-          libkf6threadweaver-dev libkf6colorscheme-dev libkf6crash-dev libkf6iconthemes-dev libkf6textwidgets-dev \
-          libkf6widgetsaddons-dev \
-          libpoppler-qt6-dev libphonon4qt6-dev liblcms2-dev libtiff-dev libfreetype-dev \
-          libspectre-dev libzip-dev djvulibre-bin libdjvulibre-dev \
-          libkexiv2-dev libjpeg-dev libpng-dev libdiscount-dev
 
     - name: Configure CMake
       run: |
