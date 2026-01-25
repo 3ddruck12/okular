@@ -9,25 +9,30 @@ jobs:
     name: Build Linux (Binaries + .deb)
     runs-on: ubuntu-latest
     container:
-      image: ubuntu:rolling
+      image: ubuntu:24.10
       options: --user root
     steps:
-    - name: Prepare Container & Dependencies
+    - name: Prepare Container & Dependencies (KDE GitLab Style)
       run: |
-        # Enable source repositories
-        sed -i 's/^Types: deb$/Types: deb deb-src/' /etc/apt/sources.list.d/ubuntu.sources || sed -i 's/^#\s*deb-src/deb-src/' /etc/apt/sources.list
+        # Enable source repositories (as seen in KDE GitLab job)
+        sed -i 's/ deb/ deb deb-src/' /etc/apt/sources.list.d/ubuntu.sources
         
         apt-get update
-        apt-get install -y git tar build-essential cmake extra-cmake-modules
         
-        # Install build dependencies for Okular (pulls in KF6/Qt6)
+        # Install eatmydata for speed and essential tools
+        apt-get install -y eatmydata git tar build-essential cmake extra-cmake-modules
+        
+        # Install build dependencies for Okular using eatmydata
         export DEBIAN_FRONTEND=noninteractive
-        apt-get build-dep -y okular
+        eatmydata apt-get build-dep -y --no-install-recommends okular
+        
     - uses: actions/checkout@v4
+    
     - name: Create Source Tarball
       run: |
         git config --global --add safe.directory '*'
         git archive --format=tar.gz --output=okular-source.tar.gz HEAD
+        
     - name: Upload Source Artifact
       uses: actions/upload-artifact@v4
       with:
@@ -47,7 +52,7 @@ jobs:
     - name: Package .deb
       run: |
         cd build
-        cpack -G DEB
+        eatmydata cpack -G DEB
 
     - name: Upload Binaries
       uses: actions/upload-artifact@v4
