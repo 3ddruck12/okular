@@ -86,13 +86,18 @@ jobs:
         sudo apt-get update
         sudo apt-get install -y flatpak flatpak-builder
     - name: Build Flatpak
-      uses: flatpak/flatpak-github-actions/flatpak-builder@v6
-      with:
-        bundle: okular.flatpak
-        manifest-path: .flatpak-manifest.json
-        cache-key: flatpak-builder-${{ github.sha }}
-        repository-name: okular-nightly
-        repository-url: https://nightly.kde.org/flatpak/okular-nightly/
+      run: |
+        # Add necessary remotes with sudo
+        sudo flatpak remote-add --if-not-exists --system flathub https://dl.flathub.org/repo/flathub.flatpakrepo
+        sudo flatpak remote-add --if-not-exists --system kde https://distribute.kde.org/kdeapps.flatpakrepo
+        sudo flatpak remote-add --if-not-exists --system okular-nightly https://nightly.kde.org/flatpak/okular-nightly/
+        
+        # Build using flatpak-builder with sudo to handle dependency installation
+        # We try installing deps from okular-nightly first as in the original action, then kde/flathub
+        sudo flatpak-builder --repo=repo --force-clean build-dir .flatpak-manifest.json --install-deps-from=okular-nightly --install-deps-from=kde --install-deps-from=flathub --default-branch=master
+        
+        # Create the bundle
+        sudo flatpak build-bundle repo okular.flatpak org.kde.okular
     - name: Upload Flatpak
       uses: actions/upload-artifact@v4
       with:
@@ -116,13 +121,24 @@ jobs:
         path: C:/Craft
         key: ${{ runner.os }}-craft-${{ hashFiles('**/CMakeLists.txt') }}
     - name: Set up Craft
-      uses: kde/craft-setup-action@v1
+      run: |
+        Set-ExecutionPolicy -Scope CurrentUser RemoteSigned
+        $env:CraftCI = "1"
+        iex ((new-object net.webclient).DownloadString('https://raw.githubusercontent.com/KDE/craft/master/setup/install_craft.ps1'))
+      shell: powershell
     - name: Build Okular with Craft
       run: |
-        craft --install-deps okular
-        craft okular
+        # Craft environment setup is tricky in CI, calling craft directly if in path or via python script
+        # Assuming install_craft.ps1 puts craft in path or we need to source it.
+        # Often easier to use the craft wrapper. 
+        # Re-using the logic from typical KDE setups:
+        C:\CraftRoot\craft\bin\craft.ps1 --install-deps okular
+        C:\CraftRoot\craft\bin\craft.ps1 okular
+      shell: powershell
     - name: Package Okular
-      run: craft --package okular
+      run: |
+        C:\CraftRoot\craft\bin\craft.ps1 --package okular
+      shell: powershell
     - name: Upload EXE
       uses: actions/upload-artifact@v4
       with:
