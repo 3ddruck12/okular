@@ -14,8 +14,10 @@ jobs:
     steps:
     - name: Prepare Container & Dependencies (KDE GitLab Style)
       run: |
-        # Enable source repositories (as seen in KDE GitLab job)
+        # Enable source repositories and switch to old-releases (KDE CI workaround)
         sed -i 's/ deb/ deb deb-src/' /etc/apt/sources.list.d/ubuntu.sources
+        sed -i 's/archive.ubuntu.com/old-releases.ubuntu.com/' /etc/apt/sources.list.d/ubuntu.sources
+        sed -i 's/security.ubuntu.com/old-releases.ubuntu.com/' /etc/apt/sources.list.d/ubuntu.sources
         
         apt-get update
         
