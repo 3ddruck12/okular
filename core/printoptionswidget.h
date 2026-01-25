@@ -12,6 +12,9 @@
 #include "okularcore_export.h"
 
 class QComboBox;
+class QStackedWidget;
+class QDoubleSpinBox;
+class QCheckBox;
 
 namespace Okular
 {
@@ -79,18 +82,18 @@ public:
 
 private:
     QComboBox *m_printModeCombo;
-    class QStackedWidget *m_modeStack;
+    QStackedWidget *m_modeStack;
     
     // Poster widgets
-    class QDoubleSpinBox *m_posterTileScale;
-    class QDoubleSpinBox *m_posterOverlap;
-    class QCheckBox *m_posterCutMarks;
-    class QCheckBox *m_posterLabels;
+    QDoubleSpinBox *m_posterTileScale;
+    QDoubleSpinBox *m_posterOverlap;
+    QCheckBox *m_posterCutMarks;
+    QCheckBox *m_posterLabels;
     
     // N-Up widgets
-    class QComboBox *m_nUpPagesPerSheet;
-    class QComboBox *m_nUpPageOrder;
-    class QCheckBox *m_nUpDrawBorder;
+    QComboBox *m_nUpPagesPerSheet;
+    QComboBox *m_nUpPageOrder;
+    QCheckBox *m_nUpDrawBorder;
 
 private Q_SLOTS:
     void slotPrintModeChanged(int index);
