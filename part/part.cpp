@@ -101,6 +101,9 @@
 #include "core/generator.h"
 #include "core/page.h"
 #include "core/printoptionswidget.h"
+#include "core/posterprinter.h"
+#include "core/nupprinter.h"
+#include "core/scripter.h"
 #include "drawingtoolactions.h"
 #include "embeddedfilesdialog.h"
 #include "extensions.h"
@@ -3585,13 +3588,82 @@ void Part::slotPrint()
         PrintOptionsWidget *optionWidget = dynamic_cast<PrintOptionsWidget *>(printConfigWidget);
         if (optionWidget != nullptr) {
             printer.setFullPage(optionWidget->ignorePrintMargins());
+            
+            // Print Mode Logic
+            PrintOptionsWidget::PrintMode mode = optionWidget->printMode();
+
+            // Handle Poster Mode
+            if (mode == PrintOptionsWidget::Poster) {
+                 PosterPrinter::PosterOptions opts;
+                 opts.tileScale = optionWidget->posterTileScale();
+                 opts.overlap = optionWidget->posterOverlap();
+                 opts.cutMarks = optionWidget->posterCutMarks();
+                 opts.labels = optionWidget->posterLabels();
+                 
+                 PosterPrinter posterPrinter;
+                 QTemporaryFile posterPdf;
+                 posterPdf.setAutoRemove(false);
+                 if (posterPdf.open()) {
+                     QString posterPath = posterPdf.fileName();
+                     posterPdf.close();
+                     
+                     if (posterPrinter.generatePosterPdf(m_document, posterPath, opts)) {
+                         int result = Okular::FilePrinter::printFile(printer, posterPath,
+                                                        m_document->orientation(),
+                                                        Okular::FilePrinter::SystemDeletesFiles,
+                                                        Okular::FilePrinter::ApplicationSelectsPages,
+                                                        QString());
+                         success = (result == Okular::Document::NoPrintError);
+                         if (!success) QFile::remove(posterPath);
+                     } else {
+                         success = false;
+                         QFile::remove(posterPath);
+                     }
+                 } else {
+                     success = false;
+                 }
+            } 
+            // Handle N-Up Mode
+            else if (mode == PrintOptionsWidget::MultiplePages) {
+                 NUpPrinter::NUpOptions opts;
+                 opts.pagesPerSheet = optionWidget->nUpPagesPerSheet();
+                 opts.pageOrder = optionWidget->nUpPageOrder();
+                 opts.drawBorder = optionWidget->nUpDrawBorder();
+
+                 NUpPrinter nUpPrinter;
+                 QTemporaryFile nUpPdf;
+                 nUpPdf.setAutoRemove(false);
+                 if (nUpPdf.open()) {
+                     QString nUpPath = nUpPdf.fileName();
+                     nUpPdf.close();
+                     
+                     if (nUpPrinter.generateNUpPdf(m_document, nUpPath, opts)) {
+                         int result = Okular::FilePrinter::printFile(printer, nUpPath,
+                                                        m_document->orientation(),
+                                                        Okular::FilePrinter::SystemDeletesFiles,
+                                                        Okular::FilePrinter::ApplicationSelectsPages,
+                                                        QString());
+                         success = (result == Okular::Document::NoPrintError);
+                         if (!success) QFile::remove(nUpPath);
+                     } else {
+                         success = false;
+                         QFile::remove(nUpPath);
+                     }
+                 } else {
+                     success = false;
+                 }
+            }
+            // Standard Print (including FitToPage check handled by setFullPage above)
+            else {
+                success = doPrint(printer);
+            }
+
         } else {
             // printConfigurationWidget() method should always return an object of type Okular::PrintOptionsWidget,
             // (signature does not (yet) require it for ABI stability reasons), so Q_EMIT a warning if the object is of another type
             qWarning() << "printConfigurationWidget() method did not return an Okular::PrintOptionsWidget. This is strongly discouraged!";
+            success = doPrint(printer);
         }
-
-        success = doPrint(printer);
     }
 
     if (m_cliPrintAndExit) {

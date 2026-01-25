@@ -372,6 +372,11 @@ qt_add_resources(okularcore_SRCS
    core/script/builtin.qrc
 )
 
+set(okularcore_SRCS ${okularcore_SRCS}
+   core/posterprinter.cpp
+   core/nupprinter.cpp
+)
+
 ki18n_wrap_ui(okularcore_SRCS
    core/textdocumentsettings.ui
 )
@@ -397,7 +402,10 @@ install( FILES
            core/tile.h
            core/utils.h
            core/fileprinter.h
+           core/fileprinter.h
            core/printoptionswidget.h
+           core/posterprinter.h
+           core/nupprinter.h
            core/observer.h
            ${CMAKE_CURRENT_BINARY_DIR}/core/version.h
            ${CMAKE_CURRENT_BINARY_DIR}/core/okularcore_export.h
