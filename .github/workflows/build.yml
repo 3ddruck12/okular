@@ -5,44 +5,36 @@ on:
   pull_request:
 
 jobs:
-  build-linux-bin:
-    name: Build (Arch Linux - Binaries)
+  # Stage 1: Verify & Bundle Source
+  prepare-source:
+    name: Verify & Bundle Source (Arch)
     runs-on: ubuntu-latest
     container: archlinux:latest
     steps:
-    - name: Install Prerequisites
-      run: |
-        pacman -Syu --noconfirm
-        pacman -S --noconfirm git
+    - name: Install Git
+      run: pacman -Syu --noconfirm git
     - uses: actions/checkout@v4
-    - name: Install Dependencies
+    - name: Create Source Tarball
       run: |
-        pacman -S --noconfirm \
-          base-devel cmake pkgconf extra-cmake-modules \
-          qt6-base qt6-svg qt6-declarative qt6-tools qt6-5compat qt6-speech \
-          kf6 poppler-qt6 phonon-qt6 libkexiv2 freetype2 libtiff libspectre \
-          libzip zlib djvulibre kdegraphics-mobipocket discount ebook-tools \
-          libjpeg-turbo libpng lcms2
-    - name: Configure CMake
-      run: |
-        mkdir build
-        cd build
-        cmake .. -DCMAKE_BUILD_TYPE=Release
-    - name: Build
-      run: |
-        cd build
-        cmake --build . -j$(nproc)
-    - name: Upload Artifacts
+        git archive --format=tar.gz --output=okular-source.tar.gz HEAD
+    - name: Upload Source Artifact
       uses: actions/upload-artifact@v4
       with:
-        name: okular-linux-bin
-        path: build/bin/
+        name: okular-source
+        path: okular-source.tar.gz
 
+  # Stage 2: Parallel Builds from Source
   build-deb:
-    name: Build (.deb - Ubuntu)
+    name: Build .deb (Ubuntu)
+    needs: prepare-source
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v4
+    - name: Download Source
+      uses: actions/download-artifact@v4
+      with:
+        name: okular-source
+    - name: Extract Source
+      run: tar xf okular-source.tar.gz
     - name: Install Dependencies
       run: |
         sudo apt-get update
@@ -58,8 +50,7 @@ jobs:
           libkexiv2-dev libjpeg-dev libpng-dev libdiscount-dev
     - name: Configure CMake
       run: |
-        mkdir build
-        cd build
+        mkdir build && cd build
         cmake .. -DCMAKE_BUILD_TYPE=Release
     - name: Build & Package
       run: |
@@ -73,11 +64,18 @@ jobs:
         path: build/*.deb
 
   flatpak:
-    name: Flatpak
+    name: Build Flatpak
+    needs: prepare-source
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v4
-    - uses: flatpak/flatpak-github-actions/flatpak-builder@v6
+    - name: Download Source
+      uses: actions/download-artifact@v4
+      with:
+        name: okular-source
+    - name: Extract Source
+      run: tar xf okular-source.tar.gz
+    - name: Build Flatpak
+      uses: flatpak/flatpak-github-actions/flatpak-builder@v6
       with:
         bundle: okular.flatpak
         manifest-path: .flatpak-manifest.json
@@ -91,10 +89,16 @@ jobs:
         path: okular.flatpak
 
   build-windows:
-    name: Build (Windows - EXE)
+    name: Build EXE (Windows)
+    needs: prepare-source
     runs-on: windows-latest
     steps:
-    - uses: actions/checkout@v4
+    - name: Download Source
+      uses: actions/download-artifact@v4
+      with:
+        name: okular-source
+    - name: Extract Source
+      run: tar xf okular-source.tar.gz
     - name: Cache dependencies
       uses: actions/cache@v4
       with:
@@ -107,8 +111,7 @@ jobs:
         craft --install-deps okular
         craft okular
     - name: Package Okular
-      run: |
-        craft --package okular
+      run: craft --package okular
     - name: Upload EXE
       uses: actions/upload-artifact@v4
       with:
