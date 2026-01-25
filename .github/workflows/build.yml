@@ -5,7 +5,8 @@ on:
   pull_request:
 
 jobs:
-  build:
+  build-arch:
+    name: Build (Arch Linux)
     runs-on: ubuntu-latest
     container: archlinux:latest
 
@@ -20,32 +21,11 @@ jobs:
     - name: Install Dependencies
       run: |
         pacman -S --noconfirm \
-          base-devel \
-          cmake \
-          pkgconf \
-          extra-cmake-modules \
-          qt6-base \
-          qt6-svg \
-          qt6-declarative \
-          qt6-tools \
-          qt6-5compat \
-          qt6-speech \
-          kf6 \
-          poppler-qt6 \
-          phonon-qt6 \
-          libkexiv2 \
-          freetype2 \
-          libtiff \
-          libspectre \
-          libzip \
-          zlib \
-          djvulibre \
-          kdegraphics-mobipocket \
-          discount \
-          ebook-tools \
-          libjpeg-turbo \
-          libpng \
-          lcms2
+          base-devel cmake pkgconf extra-cmake-modules \
+          qt6-base qt6-svg qt6-declarative qt6-tools qt6-5compat qt6-speech \
+          kf6 poppler-qt6 phonon-qt6 libkexiv2 freetype2 libtiff libspectre \
+          libzip zlib djvulibre kdegraphics-mobipocket discount ebook-tools \
+          libjpeg-turbo libpng lcms2
 
     - name: Configure CMake
       run: |
@@ -61,5 +41,63 @@ jobs:
     - name: Upload Artifacts
       uses: actions/upload-artifact@v4
       with:
-        name: okular-build
+        name: okular-arch-bin
         path: build/bin/
+
+  build-ubuntu:
+    name: Build (.deb - Ubuntu)
+    runs-on: ubuntu-latest
+    
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Install Dependencies
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y \
+          build-essential cmake extra-cmake-modules \
+          qt6-base-dev qt6-svg-dev qt6-declarative-dev qt6-tools-dev qt6-5compat-dev qt6-speech-dev \
+          libkf6archive-dev libkf6bookmarks-dev libkf6completion-dev libkf6config-dev libkf6configwidgets-dev \
+          libkf6coreaddons-dev libkf6i18n-dev libkf6kio-dev libkf6parts-dev libkf6windowsystem-dev libkf6xmlgui-dev \
+          libkf6threadweaver-dev libkf6colorscheme-dev libkf6crash-dev libkf6iconthemes-dev libkf6textwidgets-dev \
+          libkf6widgetsaddons-dev \
+          libpoppler-qt6-dev libphonon4qt6-dev liblcms2-dev libtiff-dev libfreetype-dev \
+          libspectre-dev libzip-dev djvulibre-bin libdjvulibre-dev \
+          libkexiv2-dev libjpeg-dev libpng-dev libdiscount-dev
+
+    - name: Configure CMake
+      run: |
+        mkdir build
+        cd build
+        cmake .. -DCMAKE_BUILD_TYPE=Release
+
+    - name: Build & Package
+      run: |
+        cd build
+        cmake --build . -j$(nproc)
+        cpack -G DEB
+
+    - name: Upload DEB
+      uses: actions/upload-artifact@v4
+      with:
+        name: okular-deb
+        path: build/*.deb
+
+  flatpak:
+    name: Flatpak
+    runs-on: ubuntu-latest
+    container:
+      image: bilelmoussaoui/flatpak-github-actions:kde-6.0
+      options: --privileged
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Build Flatpak
+      uses: flatpak/flatpak-github-actions/flatpak-builder@v6
+      with:
+        bundle: okular.flatpak
+        manifest-path: .flatpak-manifest.json
+        cache-key: flatpak-builder-${{ github.sha }}
+        repository-name: okular-nightly
+        repository-url: https://nightly.kde.org/flatpak/okular-nightly/

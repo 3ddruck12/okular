@@ -671,3 +671,22 @@ feature_summary(WHAT ALL FATAL_ON_MISSING_REQUIRED_PACKAGES)
 message("-- Building Desktop User Interface: ${BUILD_DESKTOP}")
 message("-- Building Mobile Interface: ${BUILD_MOBILE}")
 message("")
+
+# CPack configuration
+set(CPACK_PACKAGE_NAME "okular-plus")
+set(CPACK_PACKAGE_VENDOR "OkularPlus Team")
+set(CPACK_PACKAGE_CONTACT "3ddruck12")
+set(CPACK_PACKAGE_DESCRIPTION_SUMMARY "Okular with Poster and N-Up Printing features")
+set(CPACK_RESOURCE_FILE_LICENSE "${CMAKE_CURRENT_SOURCE_DIR}/COPYING")
+set(CPACK_PACKAGE_VERSION_MAJOR "${RELEASE_SERVICE_VERSION_MAJOR}")
+set(CPACK_PACKAGE_VERSION_MINOR "${RELEASE_SERVICE_VERSION_MINOR}")
+set(CPACK_PACKAGE_VERSION_PATCH "${RELEASE_SERVICE_VERSION_MICRO}")
+
+set(CPACK_GENERATOR "DEB;TGZ")
+set(CPACK_DEBIAN_PACKAGE_MAINTAINER "3ddruck12")
+set(CPACK_DEBIAN_PACKAGE_SECTION "graphics")
+set(CPACK_DEBIAN_PACKAGE_PRIORITY "optional")
+set(CPACK_DEBIAN_PACKAGE_DEPENDS "libc6, libqt6core6, libqt6gui6, libqt6widgets6, libqt6printsupport6, libqt6svg6, libqt6xml6, kf6-karchive, kf6-kbookmarks, kf6-kcompletion, kf6-kconfig, kf6-kconfigwidgets, kf6-kcoreaddons, kf6-kiocore, kf6-kiowidgets, kf6-kthreadweaver, kf6-kwindowsystem, kf6-kxmlgui, libpoppler-qt6-3")
+set(CPACK_DEBIAN_PACKAGE_SHLIBDEPS ON)
+
+include(CPack)
