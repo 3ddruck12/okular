@@ -8,7 +8,9 @@ jobs:
   build-linux:
     name: Build Linux (Binaries + .deb)
     runs-on: ubuntu-latest
-    container: kdeneon/plasma:user
+    container:
+      image: kdeneon/plasma:user
+      options: --user root
     steps:
     - name: Install Git & Basic Tools
       run: |
