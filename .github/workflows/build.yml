@@ -87,13 +87,13 @@ jobs:
         sudo apt-get install -y flatpak flatpak-builder
     - name: Build Flatpak
       run: |
-        # Add necessary remotes with sudo
+        # Add necessary remotes with sudo - using cdn.kde.org for better reliability
         sudo flatpak remote-add --if-not-exists --system flathub https://dl.flathub.org/repo/flathub.flatpakrepo
-        sudo flatpak remote-add --if-not-exists --system kde https://distribute.kde.org/kdeapps.flatpakrepo
-        sudo flatpak remote-add --if-not-exists --system okular-nightly https://nightly.kde.org/flatpak/okular-nightly/
+        sudo flatpak remote-add --if-not-exists --system kde https://cdn.kde.org/flatpak/kde-runtime-nightly/
+        sudo flatpak remote-add --if-not-exists --system okular-nightly https://cdn.kde.org/flatpak/okular-nightly/
         
         # Build using flatpak-builder with sudo to handle dependency installation
-        # We try installing deps from okular-nightly first as in the original action, then kde/flathub
+        # We try installing deps from okular-nightly first, then kde, then flathub
         sudo flatpak-builder --repo=repo --force-clean build-dir .flatpak-manifest.json --install-deps-from=okular-nightly --install-deps-from=kde --install-deps-from=flathub --default-branch=master
         
         # Create the bundle
