@@ -5,19 +5,16 @@ on:
   pull_request:
 
 jobs:
-  build-arch:
-    name: Build (Arch Linux)
+  build-linux-bin:
+    name: Build (Arch Linux - Binaries)
     runs-on: ubuntu-latest
     container: archlinux:latest
-
     steps:
     - name: Install Prerequisites
       run: |
         pacman -Syu --noconfirm
         pacman -S --noconfirm git
-
     - uses: actions/checkout@v4
-
     - name: Install Dependencies
       run: |
         pacman -S --noconfirm \
@@ -26,31 +23,26 @@ jobs:
           kf6 poppler-qt6 phonon-qt6 libkexiv2 freetype2 libtiff libspectre \
           libzip zlib djvulibre kdegraphics-mobipocket discount ebook-tools \
           libjpeg-turbo libpng lcms2
-
     - name: Configure CMake
       run: |
         mkdir build
         cd build
         cmake .. -DCMAKE_BUILD_TYPE=Release
-
     - name: Build
       run: |
         cd build
         cmake --build . -j$(nproc)
-
     - name: Upload Artifacts
       uses: actions/upload-artifact@v4
       with:
-        name: okular-arch-bin
+        name: okular-linux-bin
         path: build/bin/
 
-  build-ubuntu:
+  build-deb:
     name: Build (.deb - Ubuntu)
     runs-on: ubuntu-latest
-    
     steps:
     - uses: actions/checkout@v4
-
     - name: Install Dependencies
       run: |
         sudo apt-get update
@@ -64,19 +56,16 @@ jobs:
           libpoppler-qt6-dev libphonon4qt6-dev liblcms2-dev libtiff-dev libfreetype-dev \
           libspectre-dev libzip-dev djvulibre-bin libdjvulibre-dev \
           libkexiv2-dev libjpeg-dev libpng-dev libdiscount-dev
-
     - name: Configure CMake
       run: |
         mkdir build
         cd build
         cmake .. -DCMAKE_BUILD_TYPE=Release
-
     - name: Build & Package
       run: |
         cd build
         cmake --build . -j$(nproc)
         cpack -G DEB
-
     - name: Upload DEB
       uses: actions/upload-artifact@v4
       with:
@@ -86,18 +75,42 @@ jobs:
   flatpak:
     name: Flatpak
     runs-on: ubuntu-latest
-    container:
-      image: bilelmoussaoui/flatpak-github-actions:kde-6.0
-      options: --privileged
-    
     steps:
     - uses: actions/checkout@v4
-    
-    - name: Build Flatpak
-      uses: flatpak/flatpak-github-actions/flatpak-builder@v6
+    - uses: flatpak/flatpak-github-actions/flatpak-builder@v6
       with:
         bundle: okular.flatpak
         manifest-path: .flatpak-manifest.json
         cache-key: flatpak-builder-${{ github.sha }}
         repository-name: okular-nightly
         repository-url: https://nightly.kde.org/flatpak/okular-nightly/
+    - name: Upload Flatpak
+      uses: actions/upload-artifact@v4
+      with:
+        name: okular-flatpak
+        path: okular.flatpak
+
+  build-windows:
+    name: Build (Windows - EXE)
+    runs-on: windows-latest
+    steps:
+    - uses: actions/checkout@v4
+    - name: Cache dependencies
+      uses: actions/cache@v4
+      with:
+        path: C:/Craft
+        key: ${{ runner.os }}-craft-${{ hashFiles('**/CMakeLists.txt') }}
+    - name: Set up Craft
+      uses: kde/craft-setup-action@v1
+    - name: Build Okular with Craft
+      run: |
+        craft --install-deps okular
+        craft okular
+    - name: Package Okular
+      run: |
+        craft --package okular
+    - name: Upload EXE
+      uses: actions/upload-artifact@v4
+      with:
+        name: okular-windows-exe
+        path: C:/Craft/dist/*.exe
