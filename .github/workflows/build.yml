@@ -5,14 +5,15 @@ on:
   pull_request:
 
 jobs:
-  # Stage 1: Verify & Bundle Source
-  prepare-source:
-    name: Verify & Bundle Source (Arch)
+  build-linux:
+    name: Build Linux (Binaries + .deb)
     runs-on: ubuntu-latest
-    container: archlinux:latest
+    container: kdeneon/plasma:user
     steps:
-    - name: Install Git
-      run: pacman -Syu --noconfirm git
+    - name: Install Git & Basic Tools
+      run: |
+        pkcon refresh
+        pkcon install -y git tar
     - uses: actions/checkout@v4
     - name: Create Source Tarball
       run: |
@@ -23,23 +24,9 @@ jobs:
       with:
         name: okular-source
         path: okular-source.tar.gz
-
-  # Stage 2: Parallel Builds from Source
-  build-deb:
-    name: Build .deb (KDE Neon)
-    needs: prepare-source
-    runs-on: ubuntu-latest
-    container: kdeneon/plasma:user
-    steps:
-    - name: Download Source
-      uses: actions/download-artifact@v4
-      with:
-        name: okular-source
-    - name: Extract Source
-      run: tar xf okular-source.tar.gz
+    
     - name: Install Build Dependencies
       run: |
-        pkcon refresh
         pkcon install -y build-essential cmake extra-cmake-modules \
           qt6-base-dev qt6-svg-dev qt6-declarative-dev qt6-tools-dev qt6-5compat-dev qt6-speech-dev \
           libkf6archive-dev libkf6bookmarks-dev libkf6completion-dev libkf6config-dev libkf6configwidgets-dev \
@@ -48,17 +35,30 @@ jobs:
           libkf6widgetsaddons-dev \
           libpoppler-qt6-dev libphonon4qt6-dev liblcms2-dev libtiff-dev libfreetype-dev \
           libspectre-dev libzip-dev djvulibre-bin libdjvulibre-dev \
-          libkexiv2-dev libjpeg-dev libpng-dev libdiscount-dev git
+          libkexiv2-dev libjpeg-dev libpng-dev libdiscount-dev
+
     - name: Configure CMake
       run: |
         mkdir build && cd build
         cmake .. -DCMAKE_BUILD_TYPE=Release
-    - name: Build & Package
+    
+    - name: Build
       run: |
         cd build
         cmake --build . -j$(nproc)
+    
+    - name: Package .deb
+      run: |
+        cd build
         cpack -G DEB
-    - name: Upload DEB
+
+    - name: Upload Binaries
+      uses: actions/upload-artifact@v4
+      with:
+        name: okular-linux-bin
+        path: build/bin/
+
+    - name: Upload .deb
       uses: actions/upload-artifact@v4
       with:
         name: okular-deb
@@ -66,7 +66,7 @@ jobs:
 
   flatpak:
     name: Build Flatpak
-    needs: prepare-source
+    needs: build-linux
     runs-on: ubuntu-latest
     steps:
     - name: Download Source
@@ -91,7 +91,7 @@ jobs:
 
   build-windows:
     name: Build EXE (Windows)
-    needs: prepare-source
+    needs: build-linux
     runs-on: windows-latest
     steps:
     - name: Download Source
