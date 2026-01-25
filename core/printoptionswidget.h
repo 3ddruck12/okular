@@ -42,6 +42,8 @@ public:
     virtual bool posterCutMarks() const { return false; }
     virtual bool posterLabels() const { return false; }
 
+    virtual bool ignorePrintMargins() const { return false; }
+
     // N-Up specific
     virtual int nUpPagesPerSheet() const { return 1; }
     virtual int nUpPageOrder() const { return 0; } // 0: Horizontal, 1: HorizRev, 2: Vert, 3: VertRev
