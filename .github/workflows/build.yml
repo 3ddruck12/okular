@@ -16,6 +16,7 @@ jobs:
     - uses: actions/checkout@v4
     - name: Create Source Tarball
       run: |
+        git config --global --add safe.directory '*'
         git archive --format=tar.gz --output=okular-source.tar.gz HEAD
     - name: Upload Source Artifact
       uses: actions/upload-artifact@v4
