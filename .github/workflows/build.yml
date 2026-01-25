@@ -81,6 +81,10 @@ jobs:
         name: okular-source
     - name: Extract Source
       run: tar xf okular-source.tar.gz
+    - name: Install Flatpak Builder
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y flatpak flatpak-builder
     - name: Build Flatpak
       uses: flatpak/flatpak-github-actions/flatpak-builder@v6
       with:
