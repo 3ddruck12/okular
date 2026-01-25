@@ -42,7 +42,7 @@ jobs:
           kwallet \
           kdoctools \
           karchive \
-          kthreadweaver \
+          threadweaver \
           kcolorscheme \
           purpose \
           poppler-qt6 \
