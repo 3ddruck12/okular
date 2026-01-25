@@ -43,6 +43,8 @@ jobs:
 
     - name: Configure CMake
       run: |
+        # Workaround for CPack expecting 'COPYING'
+        cp LICENSES/GPL-2.0-or-later.txt COPYING
         mkdir build && cd build
         cmake .. -DCMAKE_BUILD_TYPE=Release
     
