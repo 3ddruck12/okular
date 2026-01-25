@@ -7,6 +7,7 @@
 #include "document.h"
 #include "page.h"
 #include "generator.h"
+#include "observer.h"
 
 #include <QPdfWriter>
 #include <QPainter>
@@ -146,7 +147,7 @@ bool PosterPrinter::generatePosterPdf(Okular::Document *doc, const QString &outP
             SyncPixmapObserver() : m_page(nullptr) {}
             ~SyncPixmapObserver() override {}
             
-            void notifySetup(const QVector<Okular::Page *> &pages, int setupFlags) override {}
+            void notifySetup(const QList<Okular::Page *> &pages, int setupFlags) override {}
             void notifyViewportChanged(bool smoothMove) override {}
             void notifyPageChanged(int page, int flags) override {
                 if (flags & DocumentObserver::Pixmap && m_page && page == m_page->number()) {
@@ -156,6 +157,7 @@ bool PosterPrinter::generatePosterPdf(Okular::Document *doc, const QString &outP
                 }
             }
             void notifyContentsCleared(int changed) override {}
+            void notifyVisibleRectsChanged() override {}
             void notifyZoom(int factor) override {}
             bool canUnloadPixmap(int page) const override { return true; }
 
@@ -182,7 +184,7 @@ bool PosterPrinter::generatePosterPdf(Okular::Document *doc, const QString &outP
         
         observer.waitForPixmap();
         
-        const QPixmap *pix = page->pixmap(&observer, pixW, pixH);
+        const QPixmap *pix = doc->pixmap(page->number(), pixW, pixH, &observer);
         QImage pageImage;
         if (pix) {
             pageImage = pix->toImage();

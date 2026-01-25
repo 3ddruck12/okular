@@ -7,6 +7,7 @@
 #include "document.h"
 #include "page.h"
 #include "generator.h"
+#include "observer.h"
 
 #include <QPdfWriter>
 #include <QPainter>
@@ -85,9 +86,10 @@ bool NUpPrinter::generateNUpPdf(Okular::Document *doc, const QString &outPath, c
                  }
             }
         }
-        void notifySetup(const QVector<Okular::Page *> &, int) override {}
+        void notifySetup(const QList<Okular::Page *> &, int) override {}
         void notifyViewportChanged(bool) override {}
         void notifyContentsCleared(int) override {}
+        void notifyVisibleRectsChanged() override {}
         void notifyZoom(int) override {}
         bool canUnloadPixmap(int) const override { return true; }
 
@@ -192,7 +194,7 @@ bool NUpPrinter::generateNUpPdf(Okular::Document *doc, const QString &outPath, c
             
             observer.waitForPixmap();
             
-            const QPixmap *pix = page->pixmap(&observer, pixW, pixH);
+            const QPixmap *pix = doc->pixmap(page->number(), pixW, pixH, &observer);
             if (pix) {
                 QImage img = pix->toImage();
                 painter.drawImage(QRectF(destX, destY, renderW, renderH), img);
