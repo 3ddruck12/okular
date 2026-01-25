@@ -103,6 +103,7 @@
 #include "core/printoptionswidget.h"
 #include "gui/posterprinter.h"
 #include "gui/nupprinter.h"
+#include "core/fileprinter.h"
 #include "core/scripter.h"
 #include "drawingtoolactions.h"
 #include "embeddedfilesdialog.h"
