@@ -7,47 +7,53 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
+    container: archlinux:latest
 
     steps:
+    - name: Install Prerequisites
+      run: |
+        pacman -Syu --noconfirm
+        pacman -S --noconfirm git
+
     - uses: actions/checkout@v4
 
     - name: Install Dependencies
       run: |
-        sudo apt-get update
-        sudo apt-get install -y \
-          build-essential \
+        pacman -S --noconfirm \
+          base-devel \
           cmake \
           extra-cmake-modules \
-          qt6-base-dev \
-          libkf6config-dev \
-          libkf6coreaddons-dev \
-          libkf6i18n-dev \
-          libkf6kio-dev \
-          libkf6bookmarks-dev \
-          libkf6xmlgui-dev \
-          libpoppler-qt6-dev \
-          libkf6parts-dev \
-          libkf6windowsystem-dev \
-          libkf6textwidgets-dev \
-          libkf6crash-dev \
-          libkf6iconthemes-dev \
-          libkf6wallet-dev \
-          libkf6doctools-dev \
-          libkf6archive-dev \
-          libkf6threadweaver-dev \
-          libphonon4qt6-dev \
-          libpoppler-dev \
-          libfreetype-dev \
-          libtiff-dev \
-          libspectre-dev \
-          libzip-dev \
-          zlib1g-dev \
-          libdjvulibre-dev \
-          libepub-dev \
-          libqmobipocket6-dev \
-          libmarkdown2-dev \
-          libqt6svg6-dev \
-          gettext
+          qt6-base \
+          qt6-svg \
+          qt6-declarative \
+          qt6-tools \
+          kf6-config \
+          kf6-coreaddons \
+          kf6-i18n \
+          kf6-kio \
+          kf6-bookmarks \
+          kf6-xmlgui \
+          kf6-parts \
+          kf6-windowsystem \
+          kf6-textwidgets \
+          kf6-crash \
+          kf6-iconthemes \
+          kf6-wallet \
+          kf6-doctools \
+          kf6-archive \
+          kf6-threadweaver \
+          kf6-purpose \
+          poppler-qt6 \
+          phonon-qt6 \
+          freetype2 \
+          libtiff \
+          libspectre \
+          libzip \
+          zlib \
+          djvulibre \
+          kdegraphics-mobipocket \
+          discount \
+          ebook-tools
 
     - name: Configure CMake
       run: |
