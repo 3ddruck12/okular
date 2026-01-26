@@ -1,0 +1,46 @@
+name: Flatpak Replicated
+
+on:
+  push:
+    branches:
+      - master
+  pull_request:
+
+jobs:
+  flatpak:
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y flatpak flatpak-builder python3 python3-yaml git curl
+
+      - name: Initialize Flatpak Remotes
+        run: |
+          flatpak remote-add --if-not-exists --user flathub https://flathub.org/repo/flathub.flatpakrepo
+          flatpak remote-add --if-not-exists --user kde https://cdn.kde.org/flatpak/kde-runtime-nightly/
+          flatpak remote-add --if-not-exists --user okular-nightly https://cdn.kde.org/flatpak/okular-nightly/
+
+      - name: Clone CI Utilities
+        run: git clone https://invent.kde.org/sysadmin/ci-utilities.git --depth=1
+
+      - name: Clone CI Notary Service
+        run: git clone https://invent.kde.org/sysadmin/ci-notary-service.git --depth=1
+
+      - name: Build Flatpak
+        env:
+          KDE_FLATPAK_MODULE_NAME: okular
+        run: |
+           python3 -u ci-utilities/flatpak-build.py $KDE_FLATPAK_MODULE_NAME
+
+      - name: Upload Artifacts
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: flatpak-artifacts
+          path: |
+            *.flatpak
+            *.log

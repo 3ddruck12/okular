@@ -1,0 +1,27 @@
+name: Lint (Clang Format)
+
+on:
+  push:
+    branches:
+      - master
+  pull_request:
+
+jobs:
+  clang-format:
+    name: Clang Format
+    runs-on: ubuntu-latest
+    container:
+      image: debian:stable
+    steps:
+      - name: Install Dependencies
+        run: |
+          apt-get update
+          apt-get install --yes --no-install-recommends git clang-format-19
+
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Run Clang Format
+        run: |
+          find . \( -name "*.cpp" -or -name "*.h"  -or -name "*.c"  -or -name "*.cc" \) -exec clang-format-19 -i {} \;
+          git diff --exit-code

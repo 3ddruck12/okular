@@ -1,0 +1,34 @@
+name: Linux Build (Ubuntu 24.10)
+
+on:
+  push:
+    branches:
+      - master
+  pull_request:
+
+jobs:
+  build:
+    name: Build on Ubuntu 24.10
+    runs-on: ubuntu-latest
+    container:
+      image: ubuntu:24.10
+    steps:
+      - name: Prepare Container
+        run: |
+          # Replicating before_script from .gitlab-ci.yml
+          sed -i 's/ deb/ deb deb-src/' /etc/apt/sources.list.d/ubuntu.sources
+          sed -i 's/archive.ubuntu.com/old-releases.ubuntu.com/' /etc/apt/sources.list.d/ubuntu.sources
+          sed -i 's/security.ubuntu.com/old-releases.ubuntu.com/' /etc/apt/sources.list.d/ubuntu.sources
+          apt-get update
+          apt-get install --yes eatmydata git
+          eatmydata apt-get build-dep --yes --no-install-recommends okular
+          eatmydata apt-get install --yes --no-install-recommends ninja-build
+
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Build
+        run: |
+          mkdir -p build && cd build
+          cmake -DOKULAR_UI=both -G Ninja ..
+          ninja

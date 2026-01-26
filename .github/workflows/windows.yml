@@ -1,0 +1,73 @@
+name: Windows Craft Replicated
+
+on:
+  push:
+    branches:
+      - master
+  pull_request:
+
+jobs:
+  windows:
+    runs-on: windows-2022
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          path: src
+
+      - name: Install Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.x'
+
+      - name: Set up Craft Environment
+        run: |
+          New-Item -ItemType Directory -Force -Path C:\Craft
+          cd C:\Craft
+          git clone https://invent.kde.org/packaging/craftmaster.git
+          git clone https://invent.kde.org/sysadmin/ci-utilities.git
+          git clone https://invent.kde.org/sysadmin/craft-ci.git
+          # ci-notary-service might be needed if strictly following log, but skipping for now as it often requires secrets
+        shell: powershell
+
+      - name: Configure Craft (Setup)
+        run: |
+          cd C:\Craft
+          python craftmaster/CraftMaster.py --config craft-ci/qt6/CraftConfig.ini --config-override $PWD/src/.craft.ini --target windows-msvc2022_64-cl --setup
+        shell: powershell
+
+      - name: Update Craft
+        run: |
+          cd C:\Craft
+          python craftmaster/CraftMaster.py --config craft-ci/qt6/CraftConfig.ini --config-override $PWD/src/.craft.ini --target windows-msvc2022_64-cl -c -i --options virtual.ignored=True --update craft
+        shell: powershell
+
+      - name: Install Dependencies
+        run: |
+          cd C:\Craft
+          python craftmaster/CraftMaster.py --config craft-ci/qt6/CraftConfig.ini --config-override $PWD/src/.craft.ini --target windows-msvc2022_64-cl -c --install-deps --options "[CodeSigning]Enabled=False" okular
+        shell: powershell
+
+      - name: Update NSIS
+        run: |
+          cd C:\Craft
+          python craftmaster/CraftMaster.py --config craft-ci/qt6/CraftConfig.ini --config-override $PWD/src/.craft.ini --target windows-msvc2022_64-cl -c -i --update nsis
+        shell: powershell
+
+      - name: Package Okular
+        run: |
+          cd C:\Craft
+          # Point srcDir to where actions/checkout put the code (C:\Craft\src is likely wrong if we are in C:\Craft, but step 1 checked out to 'src' relative to workspace)
+          # GitHub Actions workspace is usually D:\a\repo\repo.
+          # We need absolute path to source.
+          $RepoPath = Resolve-Path "src"
+          python craftmaster/CraftMaster.py --config craft-ci/qt6/CraftConfig.ini --config-override $PWD/src/.craft.ini --target windows-msvc2022_64-cl -c --package --options "okular.srcDir=$RepoPath" --options "[CodeSigning]Enabled=False" okular
+        shell: powershell
+
+      - name: Upload Artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: okular-windows
+          path: |
+            C:/Craft/windows-msvc2022_64-cl/tmp/*.7z
+            C:/Craft/windows-msvc2022_64-cl/tmp/*.exe
