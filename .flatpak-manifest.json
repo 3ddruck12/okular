@@ -313,7 +313,8 @@
             "config-opts": [
                 "-Ddefault_library=shared",
                 "-Ddistro_install=true",
-                "-Dwith_INIReader=true"
+                "-Dwith_INIReader=true",
+                "--libdir=/app/lib"
             ],
             "sources": [
                 {

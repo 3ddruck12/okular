@@ -30,12 +30,6 @@ jobs:
       - name: Clone CI Notary Service
         run: git clone https://invent.kde.org/sysadmin/ci-notary-service.git --depth=1
 
-      - name: Patch flatpak-build.py for Libdir
-        run: |
-          # Force /app/lib to avoid lib64 mismatch
-          sed -i 's/"flatpak-builder",/"flatpak-builder", "--default-configure-args=--libdir=\/app\/lib",/' ci-utilities/flatpak-build.py
-
-
       - name: Build Flatpak
         env:
           KDE_FLATPAK_MODULE_NAME: okular
