@@ -1,0 +1,57 @@
+name: Build .deb Package
+
+on:
+  push:
+    branches:
+      - master
+      - 'work/**'
+  workflow_dispatch:
+
+jobs:
+  build-deb:
+    name: Build Linux .deb
+    runs-on: ubuntu-latest
+    container:
+      image: ubuntu:24.10
+      options: --user root
+    steps:
+    - name: Prepare Container & Dependencies (KDE GitLab Style)
+      run: |
+        # Enable source repositories and switch to old-releases (KDE CI workaround)
+        sed -i 's/ deb/ deb deb-src/' /etc/apt/sources.list.d/ubuntu.sources
+        sed -i 's/archive.ubuntu.com/old-releases.ubuntu.com/' /etc/apt/sources.list.d/ubuntu.sources
+        sed -i 's/security.ubuntu.com/old-releases.ubuntu.com/' /etc/apt/sources.list.d/ubuntu.sources
+        
+        apt-get update
+        
+        # Install eatmydata for speed and essential tools
+        apt-get install -y eatmydata git tar build-essential cmake extra-cmake-modules
+        
+        # Install build dependencies for Okular using eatmydata
+        export DEBIAN_FRONTEND=noninteractive
+        eatmydata apt-get build-dep -y --no-install-recommends okular
+        
+    - uses: actions/checkout@v4
+    
+    - name: Configure CMake
+      run: |
+        # Workaround for CPack expecting 'COPYING'
+        cp LICENSES/GPL-2.0-or-later.txt COPYING
+        mkdir build && cd build
+        cmake .. -DCMAKE_BUILD_TYPE=Release
+    
+    - name: Build
+      run: |
+        cd build
+        cmake --build . -j$(nproc)
+    
+    - name: Package .deb
+      run: |
+        cd build
+        eatmydata cpack -G DEB
+
+    - name: Upload .deb
+      uses: actions/upload-artifact@v4
+      with:
+        name: okular-deb
+        path: build/*.deb
