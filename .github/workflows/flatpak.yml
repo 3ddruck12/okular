@@ -22,9 +22,9 @@ jobs:
 
       - name: Initialize Flatpak Remotes
         run: |
-          flatpak remote-add --if-not-exists --user flathub https://flathub.org/repo/flathub.flatpakrepo
-          flatpak remote-add --if-not-exists --user kde https://cdn.kde.org/flatpak/kde-runtime-nightly/
-          flatpak remote-add --if-not-exists --user okular-nightly https://cdn.kde.org/flatpak/okular-nightly/
+          flatpak remote-add --if-not-exists --no-gpg-verify --user flathub https://flathub.org/repo/flathub.flatpakrepo
+          flatpak remote-add --if-not-exists --no-gpg-verify --user kde https://cdn.kde.org/flatpak/kde-runtime-nightly/
+          flatpak remote-add --if-not-exists --no-gpg-verify --user okular-nightly https://cdn.kde.org/flatpak/okular-nightly/
 
       - name: Clone CI Utilities
         run: git clone https://invent.kde.org/sysadmin/ci-utilities.git --depth=1
