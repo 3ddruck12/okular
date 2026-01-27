@@ -38,6 +38,8 @@ jobs:
           $SrcDir = Join-Path $env:GITHUB_WORKSPACE "src"
           python craftmaster/CraftMaster.py --config craft-ci/qt6/CraftConfig.ini --config-override $SrcDir/.craft.ini --target windows-msvc2022_64-cl --setup
         shell: powershell
+        env:
+          CRAFT_DOWNLOAD_DIR: C:\Craft\downloads
 
       - name: Update Craft
         run: |
@@ -45,6 +47,8 @@ jobs:
           $SrcDir = Join-Path $env:GITHUB_WORKSPACE "src"
           python craftmaster/CraftMaster.py --config craft-ci/qt6/CraftConfig.ini --config-override $SrcDir/.craft.ini --target windows-msvc2022_64-cl -c -i --options virtual.ignored=True --update craft
         shell: powershell
+        env:
+          CRAFT_DOWNLOAD_DIR: C:\Craft\downloads
 
       - name: Install Dependencies
         run: |
@@ -52,6 +56,8 @@ jobs:
           $SrcDir = Join-Path $env:GITHUB_WORKSPACE "src"
           python craftmaster/CraftMaster.py --config craft-ci/qt6/CraftConfig.ini --config-override $SrcDir/.craft.ini --target windows-msvc2022_64-cl -c --install-deps --options "[CodeSigning]Enabled=False" okular
         shell: powershell
+        env:
+          CRAFT_DOWNLOAD_DIR: C:\Craft\downloads
 
       - name: Update NSIS
         run: |
@@ -59,6 +65,8 @@ jobs:
           $SrcDir = Join-Path $env:GITHUB_WORKSPACE "src"
           python craftmaster/CraftMaster.py --config craft-ci/qt6/CraftConfig.ini --config-override $SrcDir/.craft.ini --target windows-msvc2022_64-cl -c -i --update nsis
         shell: powershell
+        env:
+          CRAFT_DOWNLOAD_DIR: C:\Craft\downloads
 
       - name: Package Okular
         run: |
@@ -66,6 +74,8 @@ jobs:
           $RepoPath = Join-Path $env:GITHUB_WORKSPACE "src"
           python craftmaster/CraftMaster.py --config craft-ci/qt6/CraftConfig.ini --config-override $RepoPath/.craft.ini --target windows-msvc2022_64-cl -c --package --options "okular.srcDir=$RepoPath" --options "[CodeSigning]Enabled=False" okular
         shell: powershell
+        env:
+          CRAFT_DOWNLOAD_DIR: C:\Craft\downloads
 
       - name: Upload Artifacts
         uses: actions/upload-artifact@v4
