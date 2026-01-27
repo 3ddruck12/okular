@@ -29,6 +29,11 @@ jobs:
           update: true
           install: base-devel
 
+      - name: Create MSYS2 Symlink for Craft
+        run: |
+          New-Item -ItemType SymbolicLink -Path "C:\Msys2" -Target "C:\msys64" -Force
+        shell: powershell
+
       - name: Create Z Drive for Craft Downloads
         run: |
           New-Item -ItemType Directory -Force -Path C:\CraftDownloads
