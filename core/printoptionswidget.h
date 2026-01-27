@@ -59,12 +59,21 @@ public:
  * It just implements the required method 'ignorePrintMargins()' from
  * the base class 'PrintOptionsWidget'.
  */
+class PosterPreviewWidget;
+class Document;
+
+/**
+ * @short The default okular extra print options widget.
+ *
+ * It just implements the required method 'ignorePrintMargins()' from
+ * the base class 'PrintOptionsWidget'.
+ */
 class OKULARCORE_EXPORT DefaultPrintOptionsWidget : public PrintOptionsWidget
 {
     Q_OBJECT
 
 public:
-    explicit DefaultPrintOptionsWidget(QWidget *parent = nullptr);
+    explicit DefaultPrintOptionsWidget(QWidget *parent = nullptr, Okular::Document *doc = nullptr);
 
     bool ignorePrintMargins() const override;
     PrintOptionsWidget::PrintMode printMode() const override;
@@ -89,6 +98,7 @@ private:
     QDoubleSpinBox *m_posterOverlap;
     QCheckBox *m_posterCutMarks;
     QCheckBox *m_posterLabels;
+    PosterPreviewWidget *m_posterPreview;
     
     // N-Up widgets
     QComboBox *m_nUpPagesPerSheet;
@@ -97,6 +107,7 @@ private:
 
 private Q_SLOTS:
     void slotPrintModeChanged(int index);
+    void slotPosterOptionChanged();
 };
 
 }

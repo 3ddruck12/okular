@@ -3553,7 +3553,7 @@ void Part::slotPrint()
     if (m_document->canConfigurePrinter()) {
         printConfigWidget = m_document->printConfigurationWidget();
     } else {
-        printConfigWidget = new DefaultPrintOptionsWidget();
+        printConfigWidget = new DefaultPrintOptionsWidget(widget(), m_document);
     }
 
     QPrintDialog printDialog(&printer, widget());
