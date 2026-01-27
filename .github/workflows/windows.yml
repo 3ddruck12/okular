@@ -78,6 +78,13 @@ jobs:
           python craftmaster/CraftMaster.py --config craft-ci/qt6/CraftConfig.ini --config-override $SrcDir/.craft.ini --target windows-msvc2022_64-cl -c -i --update nsis
         shell: powershell
 
+      - name: Build Okular
+        run: |
+          cd C:\Craft
+          $RepoPath = Join-Path $env:GITHUB_WORKSPACE "src"
+          python craftmaster/CraftMaster.py --config craft-ci/qt6/CraftConfig.ini --config-override $RepoPath/.craft.ini --target windows-msvc2022_64-cl -c -i --options "okular.srcDir=$RepoPath" okular
+        shell: powershell
+
       - name: Package Okular
         run: |
           cd C:\Craft
