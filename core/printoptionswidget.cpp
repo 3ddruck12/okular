@@ -10,9 +10,14 @@
 #include <QCheckBox>
 #include <QDoubleSpinBox>
 #include <QFormLayout>
+#include <QHBoxLayout>
 #include <QStackedWidget>
 #include <QLabel>
+#include <QPainter>
+#include <QPen>
 
+#include "document.h"
+#include "page.h"
 #include <KLocalizedString>
 
 namespace Okular
