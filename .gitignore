@@ -16,3 +16,10 @@ CMakeLists.txt.user*
 # Flatpak
 .flatpak-builder
 build-dir
+
+# Poster Print Files
+okularposter.png
+mehre.png
+jobwindows.log
+broschüre.png
+Adobe_standart.png
